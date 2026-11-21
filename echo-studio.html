@@ -1,0 +1,1443 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="icon" href="data:," />
+    <title>Echo Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
+    <style>
+      button, [role="button"], select, summary, input:not([type="checkbox"], [type="radio"]) { min-height: 2rem; }
+
+      :root {
+        --bg: #0b0e0d;
+        --bg-2: #101413;
+        --panel: #151a18;
+        --panel-2: #1a201d;
+        --line: #26302b;
+        --line-soft: #1e2622;
+        --text: #e8efec;
+        --text-2: #a7b5ae;
+        --text-3: #6f7f77;
+        --accent: #2fbf9b;
+        --accent-strong: #25a37f;
+        --accent-dim: rgba(47, 191, 155, 0.14);
+        --red: #e5484d;
+        --red-dim: rgba(229, 72, 77, 0.14);
+        --amber: #e8a33d;
+        --track: #242e29;
+        --shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+        --radius: 16px;
+      }
+      [data-theme="light"] {
+        --bg: #eef1ef;
+        --bg-2: #e6ebe8;
+        --panel: #ffffff;
+        --panel-2: #f4f7f5;
+        --line: #d3dcd7;
+        --line-soft: #e0e7e3;
+        --text: #14201b;
+        --text-2: #4c5d55;
+        --text-3: #7d8d85;
+        --accent: #0d9d78;
+        --accent-strong: #0b8566;
+        --accent-dim: rgba(13, 157, 120, 0.12);
+        --track: #dde5e1;
+        --shadow: 0 18px 44px rgba(20, 40, 32, 0.14);
+      }
+
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+        font-size: 15px;
+        line-height: 1.5;
+        min-height: 100vh;
+      }
+      .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+
+      /* ---------- Header ---------- */
+      header {
+        position: sticky; top: 0; z-index: 40;
+        background: color-mix(in srgb, var(--bg) 88%, transparent);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--line-soft);
+      }
+      .header-in {
+        max-width: 1120px; margin: 0 auto; padding: 12px 16px;
+        display: flex; align-items: center; gap: 12px;
+      }
+      .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+      .brand-mark {
+        width: 36px; height: 36px; flex: none; border-radius: 10px;
+        background: var(--accent-dim); border: 1px solid var(--line);
+        display: grid; place-items: center; color: var(--accent);
+      }
+      .brand h1 { font-size: 17px; font-weight: 800; margin: 0; letter-spacing: -0.01em; white-space: nowrap; }
+      .brand small { display: block; font-size: 11px; color: var(--text-3); font-weight: 600; letter-spacing: 0.02em; }
+      .header-spacer { flex: 1; }
+      .status-pill {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 7px 12px; border-radius: 999px;
+        border: 1px solid var(--line); background: var(--panel);
+        font-size: 12.5px; font-weight: 700; color: var(--text-2);
+        white-space: nowrap;
+      }
+      .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); flex: none; }
+      .status-pill.live .status-dot { background: var(--accent); box-shadow: 0 0 0 4px var(--accent-dim); }
+      .status-pill.rec .status-dot { background: var(--red); box-shadow: 0 0 0 4px var(--red-dim); animation: pulse 1.2s ease-in-out infinite; }
+      .status-pill.rec { color: var(--text); }
+      @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
+      .icon-btn {
+        width: 40px; height: 40px; flex: none; border-radius: 10px;
+        border: 1px solid var(--line); background: var(--panel); color: var(--text-2);
+        display: grid; place-items: center; cursor: pointer;
+      }
+      .icon-btn:hover { color: var(--text); border-color: var(--text-3); }
+      .icon-btn:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+      main { max-width: 1120px; margin: 0 auto; padding: 18px 16px 40px; }
+
+      /* ---------- Layout ---------- */
+      .studio-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+      @media (min-width: 920px) {
+        .studio-grid { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); align-items: start; }
+      }
+      .panel {
+        background: var(--panel); border: 1px solid var(--line-soft);
+        border-radius: var(--radius); padding: 18px;
+      }
+      .panel h2 { font-size: 13px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-2); margin: 0 0 4px; }
+      .panel .sub { font-size: 12.5px; color: var(--text-3); margin: 0 0 14px; }
+
+      /* ---------- Recorder panel ---------- */
+      .wave-wrap {
+        background: var(--bg-2); border: 1px solid var(--line-soft);
+        border-radius: 12px; overflow: hidden; position: relative;
+      }
+      canvas#wave { display: block; width: 100%; height: 132px; }
+      .wave-idle-note {
+        position: absolute; inset: 0; display: grid; place-items: center;
+        color: var(--text-3); font-size: 13px; font-weight: 600; text-align: center; padding: 0 20px;
+        pointer-events: none;
+      }
+      .timer-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-top: 14px; }
+      .timer { font-size: 40px; font-weight: 600; letter-spacing: 0.02em; line-height: 1; }
+      .timer.recording { color: var(--red); }
+      .timer-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); text-align: right; }
+      .meter-block { margin-top: 14px; }
+      .meter-head { display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 700; color: var(--text-3); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 6px; }
+      .clip-dot { display: inline-flex; align-items: center; gap: 6px; text-transform: none; letter-spacing: 0; }
+      .clip-dot i { width: 8px; height: 8px; border-radius: 50%; background: var(--track); display: inline-block; }
+      .clip-dot.hot i { background: var(--red); box-shadow: 0 0 0 4px var(--red-dim); }
+      .meter { height: 10px; border-radius: 6px; background: var(--track); overflow: hidden; }
+      .meter-fill {
+        height: 100%; width: 0%;
+        background: linear-gradient(90deg, var(--accent) 55%, var(--amber) 78%, var(--red) 96%);
+        border-radius: 6px; transition: width 60ms linear;
+      }
+      .transport { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 20px; flex-wrap: wrap; }
+      .rec-btn {
+        width: 76px; height: 76px; border-radius: 50%; border: none; cursor: pointer;
+        background: var(--red); color: #fff; display: grid; place-items: center;
+        box-shadow: 0 10px 26px rgba(229, 72, 77, 0.35);
+        transition: transform 120ms ease, background 120ms ease;
+      }
+      .rec-btn:hover { transform: scale(1.04); }
+      .rec-btn .rec-square { width: 26px; height: 26px; border-radius: 6px; background: #fff; display: none; }
+      .rec-btn .rec-circle { width: 30px; height: 30px; border-radius: 50%; background: #fff; }
+      .rec-btn.is-rec { background: var(--panel-2); border: 2px solid var(--red); box-shadow: none; animation: pulse 1.2s ease-in-out infinite; }
+      .rec-btn.is-rec .rec-square { display: block; background: var(--red); }
+      .rec-btn.is-rec .rec-circle { display: none; }
+      .rec-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+      .side-btn {
+        min-width: 52px; height: 52px; padding: 0 14px; border-radius: 50px;
+        border: 1px solid var(--line); background: var(--panel-2); color: var(--text);
+        font-weight: 700; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
+      }
+      .side-btn:hover { border-color: var(--text-3); }
+      .side-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+      .side-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+      .transport-labels { display: flex; justify-content: center; gap: 14px; margin-top: 8px; }
+      .transport-labels span { font-size: 11px; color: var(--text-3); font-weight: 700; text-align: center; }
+      .mic-row { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+      .btn {
+        border: 1px solid var(--line); background: var(--panel-2); color: var(--text);
+        border-radius: 10px; padding: 9px 14px; font-weight: 700; font-size: 13.5px;
+        cursor: pointer; display: inline-flex; align-items: center; gap: 8px; min-height: 40px;
+      }
+      .btn:hover { border-color: var(--text-3); }
+      .btn.primary { background: var(--accent); border-color: var(--accent); color: #06231b; }
+      [data-theme="light"] .btn.primary { color: #ffffff; }
+      .btn.primary:hover { background: var(--accent-strong); }
+      .btn.danger { color: var(--red); }
+      .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+      .btn.grow { flex: 1; justify-content: center; }
+
+      /* toggle switch */
+      .switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0 2px; }
+      .switch-row .lbl { font-weight: 700; font-size: 14px; }
+      .switch-row .hint { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+      .switch { position: relative; width: 50px; height: 30px; flex: none; display: inline-block; }
+      .switch input {
+        -webkit-appearance: none; appearance: none;
+        position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer;
+        border-radius: 999px; background: var(--track); border: none;
+        transition: background 150ms ease;
+      }
+      .switch input::after {
+        content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px;
+        border-radius: 50%; background: #fff; transition: transform 150ms ease;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      }
+      .switch input:checked { background: var(--accent); }
+      .switch input:checked::after { transform: translateX(20px); }
+      .switch input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      .switch .track-ui { display: none; }
+      .warn {
+        display: none; margin-top: 10px; padding: 10px 12px; border-radius: 10px;
+        background: rgba(232, 163, 61, 0.12); border: 1px solid rgba(232, 163, 61, 0.4);
+        color: var(--amber); font-size: 12.5px; font-weight: 600;
+      }
+      .warn.show { display: block; }
+      [data-theme="light"] .warn { color: #8a5c07; }
+
+      /* ---------- Effects ---------- */
+      .preset-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+      .preset-chip {
+        border: 1px solid var(--line); background: var(--panel-2); color: var(--text-2);
+        border-radius: 999px; padding: 8px 14px; font-weight: 700; font-size: 13px; cursor: pointer; min-height: 38px;
+      }
+      .preset-chip:hover { color: var(--text); border-color: var(--text-3); }
+      .preset-chip.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+      .fx-section { border-top: 1px solid var(--line-soft); padding: 14px 0 4px; margin-top: 14px; }
+      .fx-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+      .fx-head h3 { font-size: 14.5px; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 8px; }
+      .fx-head h3 svg { color: var(--accent); }
+      .mini-switch { position: relative; width: 42px; height: 25px; flex: none; display: inline-block; }
+      .mini-switch input {
+        -webkit-appearance: none; appearance: none;
+        position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer;
+        border-radius: 999px; background: var(--track); border: none;
+        transition: background 150ms ease;
+      }
+      .mini-switch input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 19px; height: 19px; border-radius: 50%; background: #fff; transition: transform 150ms ease; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+      .mini-switch input:checked { background: var(--accent); }
+      .mini-switch input:checked::after { transform: translateX(17px); }
+      .mini-switch input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      .mini-switch .track-ui { display: none; }
+      .fx-body.disabled { opacity: 0.38; pointer-events: none; }
+      .ctl { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 12px; padding: 7px 0; }
+      .ctl label { font-size: 13.5px; font-weight: 600; color: var(--text-2); }
+      .ctl .val { font-size: 13px; font-weight: 700; color: var(--text); min-width: 64px; text-align: right; }
+      .ctl input[type="range"] { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); height: 28px; cursor: pointer; margin: 0; }
+      .ctl .tip { grid-column: 1 / -1; font-size: 11.5px; color: var(--text-3); margin-top: -2px; }
+      .fx-note { font-size: 12px; color: var(--text-3); background: var(--bg-2); border: 1px solid var(--line-soft); border-radius: 10px; padding: 9px 11px; margin-top: 8px; }
+
+      /* ---------- Library ---------- */
+      .library { margin-top: 16px; }
+      .lib-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+      .storage-line { font-size: 12.5px; color: var(--text-3); font-weight: 600; }
+      .storage-bar { height: 6px; background: var(--track); border-radius: 4px; overflow: hidden; margin-top: 8px; max-width: 340px; }
+      .storage-bar i { display: block; height: 100%; background: var(--accent); width: 0%; }
+      .rec-item {
+        display: flex; gap: 12px; align-items: flex-start;
+        border: 1px solid var(--line-soft); background: var(--panel-2);
+        border-radius: 12px; padding: 13px 14px; margin-top: 10px;
+      }
+      .play-btn {
+        width: 44px; height: 44px; flex: none; border-radius: 50%;
+        border: 1px solid var(--line); background: var(--panel); color: var(--accent);
+        display: grid; place-items: center; cursor: pointer;
+      }
+      .play-btn:hover { border-color: var(--accent); }
+      .rec-meta { flex: 1; min-width: 0; }
+      .rec-name { font-weight: 800; font-size: 14.5px; overflow-wrap: anywhere; }
+      .rec-sub { font-size: 12px; color: var(--text-3); font-weight: 600; margin-top: 2px; }
+      .rec-actions { display: flex; gap: 6px; flex: none; flex-wrap: wrap; justify-content: flex-end; }
+      .mini-btn {
+        border: 1px solid var(--line); background: var(--panel); color: var(--text-2);
+        border-radius: 8px; padding: 6px 10px; font-size: 12px; font-weight: 700; cursor: pointer; min-height: 36px;
+        display: inline-flex; align-items: center; gap: 5px;
+      }
+      .mini-btn:hover { color: var(--text); border-color: var(--text-3); }
+      .mini-btn.danger { color: var(--red); }
+      .mini-btn.confirm { background: var(--red); border-color: var(--red); color: #fff; }
+      .rename-row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+      .rename-row input {
+        flex: 1; min-width: 140px; background: var(--bg-2); border: 1px solid var(--line);
+        border-radius: 8px; color: var(--text); padding: 8px 10px; font: inherit; font-size: 13.5px; min-height: 38px;
+      }
+      .empty-state { text-align: center; color: var(--text-3); padding: 26px 12px; font-size: 13.5px; font-weight: 600; }
+      .prog { height: 4px; background: var(--track); border-radius: 3px; overflow: hidden; margin-top: 8px; display: none; }
+      .prog i { display: block; height: 100%; width: 0%; background: var(--accent); }
+
+      .privacy {
+        margin-top: 16px; display: flex; gap: 10px; align-items: flex-start;
+        font-size: 13px; color: var(--text-2);
+        background: var(--accent-dim); border: 1px solid var(--line-soft);
+        border-radius: 12px; padding: 12px 14px;
+      }
+      .privacy svg { color: var(--accent); flex: none; margin-top: 1px; }
+
+      /* ---------- Settings drawer ---------- */
+      .scrim {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 60;
+        opacity: 0; pointer-events: none; transition: opacity 180ms ease;
+      }
+      .scrim.show { opacity: 1; pointer-events: auto; }
+      .drawer {
+        position: fixed; top: 0; right: 0; bottom: 0; z-index: 61;
+        width: min(400px, 92vw); background: var(--panel); border-left: 1px solid var(--line);
+        transform: translateX(102%); visibility: hidden;
+        transition: transform 220ms ease, visibility 0s linear 240ms;
+        overflow-y: auto; padding: 20px; box-shadow: var(--shadow);
+      }
+      .drawer.show { transform: translateX(0); visibility: visible; transition: transform 220ms ease; }
+      .drawer-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+      .drawer-head h2 { font-size: 17px; font-weight: 800; margin: 0; }
+      .field { margin-top: 16px; }
+      .field label { display: block; font-size: 12.5px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-2); margin-bottom: 7px; }
+      .field select {
+        width: 100%; background: var(--bg-2); color: var(--text); border: 1px solid var(--line);
+        border-radius: 10px; padding: 10px; font: inherit; font-size: 14px; min-height: 42px;
+      }
+      .field .note { font-size: 12px; color: var(--text-3); margin-top: 6px; }
+      .seg { display: flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+      .seg button { flex: 1; background: var(--panel-2); color: var(--text-2); border: none; padding: 10px; font-weight: 700; cursor: pointer; min-height: 42px; font-size: 14px; }
+      .seg button.active { background: var(--accent-dim); color: var(--accent); }
+      .drawer .btn { width: 100%; justify-content: center; margin-top: 12px; }
+
+      /* ---------- Toast ---------- */
+      #toasts { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 80; display: flex; flex-direction: column; gap: 8px; align-items: center; width: min(440px, 92vw); }
+      .toast {
+        background: var(--panel-2); color: var(--text); border: 1px solid var(--line);
+        border-radius: 10px; padding: 11px 16px; font-size: 13.5px; font-weight: 600;
+        box-shadow: var(--shadow); text-align: center; width: 100%;
+        animation: toast-in 200ms ease;
+      }
+      .toast.error { border-color: var(--red); }
+      @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+      .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+      @media (max-width: 600px) {
+        .brand small { display: none; }
+        .brand h1 { font-size: 16px; }
+        .status-pill { padding: 6px 10px; font-size: 12px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-in">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 10v4"/><path d="M8 7v10"/><path d="M12 4v16"/><path d="M16 8v8"/><path d="M20 11v2"/></svg>
+          </span>
+          <h1>Echo Studio<small>Voice recorder with live echo &amp; reverb</small></h1>
+        </div>
+        <div class="header-spacer"></div>
+        <span class="status-pill" id="statusPill" role="status"><span class="status-dot"></span><span id="statusText">Ready</span></span>
+        <button class="icon-btn" id="settingsBtn" aria-label="Open settings">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <div class="studio-grid">
+        <!-- ============ RECORDER ============ -->
+        <section class="panel" aria-label="Recorder">
+          <h2>Recorder</h2>
+          <p class="sub">Your voice is processed live — echo, reverb and all — and the recording captures the processed sound.</p>
+
+          <div class="wave-wrap">
+            <canvas id="wave" width="640" height="132" aria-label="Live audio waveform"></canvas>
+            <div class="wave-idle-note" id="waveIdle">Start the microphone to see your live waveform</div>
+          </div>
+
+          <div class="timer-row">
+            <div class="timer mono" id="timer">00:00</div>
+            <div>
+              <div class="timer-label" id="timerLabel">Recording time</div>
+              <div class="timer-label" id="lastTake" style="text-transform:none; letter-spacing:0; margin-top:3px;"></div>
+            </div>
+          </div>
+
+          <div class="meter-block">
+            <div class="meter-head">
+              <span>Input level</span>
+              <span class="clip-dot" id="clipDot"><i></i>Clip</span>
+            </div>
+            <div class="meter" role="meter" aria-label="Input level"><div class="meter-fill" id="meterFill"></div></div>
+          </div>
+
+          <div class="transport">
+            <button class="side-btn" id="pauseBtn" disabled aria-label="Pause or resume recording">
+              <svg id="pauseIcon" width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+              <span id="pauseLabel">Pause</span>
+            </button>
+            <button class="rec-btn" id="recBtn" aria-label="Start or stop recording">
+              <span class="rec-circle"></span><span class="rec-square"></span>
+            </button>
+            <button class="side-btn" id="micBtn" aria-label="Start or stop microphone">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+              <span id="micLabel">Start Mic</span>
+            </button>
+          </div>
+          <div class="transport-labels" aria-hidden="true">
+            <span style="min-width:52px;">Pause</span>
+            <span style="width:76px;" id="recLabel">Record</span>
+            <span style="min-width:52px;">Mic</span>
+          </div>
+
+          <div class="switch-row" style="border-top:1px solid var(--line-soft); margin-top:16px;">
+            <div>
+              <div class="lbl">Live monitoring</div>
+              <div class="hint">Hear your processed voice while you record. Headphones recommended.</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="monitorToggle" />
+              <span class="track-ui"></span>
+              <span class="sr-only">Live monitoring</span>
+            </label>
+          </div>
+          <div class="warn" id="monitorWarn">Monitoring is on: if you are using speakers instead of headphones, the microphone can pick up the output and cause loud feedback. Lower the volume or use headphones.</div>
+        </section>
+
+        <!-- ============ EFFECTS ============ -->
+        <section class="panel" aria-label="Audio effects">
+          <h2>Effects</h2>
+          <p class="sub">Every slider changes the live audio processing instantly — no need to restart the microphone.</p>
+
+          <div class="preset-row" id="presetRow" role="group" aria-label="Presets"></div>
+
+          <!-- Echo -->
+          <div class="fx-section">
+            <div class="fx-head">
+              <h3><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 2.5a8 8 0 0 1 0 19"/><path d="M12.5 5.5a4.5 4.5 0 0 1 0 13"/><circle cx="8" cy="12" r="1.6" fill="currentColor" stroke="none"/></svg>Echo / Delay</h3>
+              <label class="mini-switch"><input type="checkbox" id="echoOn" checked /><span class="track-ui"></span><span class="sr-only">Enable echo</span></label>
+            </div>
+            <div class="fx-body" id="echoBody">
+              <div class="ctl">
+                <label for="echoDelay">Delay time</label><span class="val mono" id="echoDelayVal"></span>
+                <input type="range" id="echoDelay" min="0" max="1000" step="5" />
+                <span class="tip">How long before each repeat is heard.</span>
+              </div>
+              <div class="ctl">
+                <label for="echoFeedback">Feedback</label><span class="val mono" id="echoFeedbackVal"></span>
+                <input type="range" id="echoFeedback" min="0" max="90" step="1" />
+                <span class="tip">How many times the echo repeats.</span>
+              </div>
+              <div class="ctl">
+                <label for="echoWet">Echo level (wet)</label><span class="val mono" id="echoWetVal"></span>
+                <input type="range" id="echoWet" min="0" max="100" step="1" />
+              </div>
+              <div class="ctl">
+                <label for="echoDry">Voice level (dry)</label><span class="val mono" id="echoDryVal"></span>
+                <input type="range" id="echoDry" min="0" max="100" step="1" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Reverb -->
+          <div class="fx-section">
+            <div class="fx-head">
+              <h3><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M7 21v-8"/><path d="M12 21V8"/><path d="M17 21v-8"/></svg>Reverb</h3>
+              <label class="mini-switch"><input type="checkbox" id="reverbOn" checked /><span class="track-ui"></span><span class="sr-only">Enable reverb</span></label>
+            </div>
+            <div class="fx-body" id="reverbBody">
+              <div class="ctl">
+                <label for="revRoom">Room size</label><span class="val mono" id="revRoomVal"></span>
+                <input type="range" id="revRoom" min="0" max="100" step="1" />
+                <span class="tip">From a small room to a large hall.</span>
+              </div>
+              <div class="ctl">
+                <label for="revDecay">Decay</label><span class="val mono" id="revDecayVal"></span>
+                <input type="range" id="revDecay" min="0" max="100" step="1" />
+                <span class="tip">How long the reverb tail lasts.</span>
+              </div>
+              <div class="ctl">
+                <label for="revDamp">Damping</label><span class="val mono" id="revDampVal"></span>
+                <input type="range" id="revDamp" min="0" max="100" step="1" />
+                <span class="tip">Higher damping softens bright reflections.</span>
+              </div>
+              <div class="ctl">
+                <label for="revMix">Reverb mix</label><span class="val mono" id="revMixVal"></span>
+                <input type="range" id="revMix" min="0" max="100" step="1" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Gain -->
+          <div class="fx-section">
+            <div class="fx-head">
+              <h3><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9.5 9.5 0 0 1 0 13"/></svg>Microphone gain</h3>
+            </div>
+            <div class="ctl">
+              <label for="micGain">Gain</label><span class="val mono" id="micGainVal"></span>
+              <input type="range" id="micGain" min="0" max="200" step="1" />
+              <span class="tip">Boosts a quiet microphone. A built-in limiter guards against harsh clipping.</span>
+            </div>
+          </div>
+
+          <!-- Noise gate -->
+          <div class="fx-section">
+            <div class="fx-head">
+              <h3><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12h4l2.5-6 3 12 3-9 2 3H22"/></svg>Noise control</h3>
+              <label class="mini-switch"><input type="checkbox" id="gateOn" checked /><span class="track-ui"></span><span class="sr-only">Enable noise gate</span></label>
+            </div>
+            <div class="fx-body" id="gateBody">
+              <div class="ctl">
+                <label for="gateThresh">Gate threshold</label><span class="val mono" id="gateThreshVal"></span>
+                <input type="range" id="gateThresh" min="-60" max="-15" step="1" />
+                <span class="tip">Sound quieter than this is treated as background noise.</span>
+              </div>
+              <div class="ctl">
+                <label for="gateStrength">Gate strength</label><span class="val mono" id="gateStrengthVal"></span>
+                <input type="range" id="gateStrength" min="0" max="100" step="1" />
+                <span class="tip">How strongly quiet passages are reduced.</span>
+              </div>
+              <div class="fx-note">This is a <strong>noise gate</strong>: it turns the level down during silent gaps (fan hum, room noise). It is not AI noise cancellation — noise that overlaps your voice is not removed.</div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ============ LIBRARY ============ -->
+      <section class="panel library" aria-label="Recording library">
+        <div class="lib-head">
+          <div>
+            <h2>Recording library</h2>
+            <p class="sub" style="margin-bottom:0;">Saved on this device only. Recordings stay here after a refresh.</p>
+          </div>
+          <div>
+            <div class="storage-line" id="storageLine">Storage: —</div>
+            <div class="storage-bar" aria-hidden="true"><i id="storageFill"></i></div>
+          </div>
+        </div>
+        <div id="libList"></div>
+      </section>
+
+      <div class="privacy">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span>Your microphone audio and recordings are processed and stored locally on your device. Nothing is uploaded to a server.</span>
+      </div>
+    </main>
+
+    <!-- ============ SETTINGS ============ -->
+    <div class="scrim" id="scrim"></div>
+    <aside class="drawer" id="drawer" aria-label="Settings">
+      <div class="drawer-head">
+        <h2>Settings</h2>
+        <button class="icon-btn" id="drawerClose" aria-label="Close settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="field">
+        <label for="micSelect">Microphone</label>
+        <select id="micSelect"><option value="">Default microphone</option></select>
+        <div class="note">The list fills in after the microphone has been started once (browsers hide device names until permission is granted).</div>
+      </div>
+
+      <div class="field">
+        <label for="outSelect">Audio output</label>
+        <select id="outSelect"><option value="">Default output</option></select>
+        <div class="note" id="outNote">Applies to recording playback. Live-monitoring output selection depends on browser support.</div>
+      </div>
+
+      <div class="field">
+        <label>Theme</label>
+        <div class="seg" role="group" aria-label="Theme">
+          <button id="themeDark" type="button">Dark</button>
+          <button id="themeLight" type="button">Light</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="switch-row" style="padding-top:0;">
+          <div>
+            <div class="lbl" style="font-size:14px;">Live monitoring by default</div>
+            <div class="hint">Turn monitoring on automatically when the mic starts.</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="monitorDefault" /><span class="track-ui"></span><span class="sr-only">Live monitoring by default</span></label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Effects</label>
+        <button class="btn" id="resetFxBtn" type="button">Reset all effect settings</button>
+      </div>
+
+      <div class="field">
+        <label>Recording library</label>
+        <button class="btn danger" id="clearLibBtn" type="button">Clear recording library</button>
+        <div class="note" id="clearNote">Deletes every saved recording from this device. This cannot be undone.</div>
+      </div>
+    </aside>
+
+    <div id="toasts" aria-live="polite"></div>
+    <audio id="player" preload="metadata" style="display:none"></audio>
+
+    <script>
+"use strict";
+/* =====================================================================
+   Echo Studio — single-file build.
+   Code is organised into the same modules as the multi-file layout:
+     1. Effects & presets   (effects.js)
+     2. Storage / IndexedDB (storage.js)
+     3. Audio engine        (audio-engine.js)
+     4. Recorder            (recorder.js)
+     5. App / UI wiring     (app.js)
+   Everything runs locally in the browser. Nothing is uploaded.
+   ===================================================================== */
+
+/* ============================ utilities ============================ */
+const $ = (id) => document.getElementById(id);
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+function fmtTime(sec) {
+  sec = Math.max(0, Math.floor(sec || 0));
+  const m = Math.floor(sec / 60), s = sec % 60;
+  return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+}
+function fmtSize(bytes) {
+  if (!bytes && bytes !== 0) return "—";
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+  return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+}
+function fmtDate(ts) {
+  const d = new Date(ts);
+  return d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) +
+    " · " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+function toast(msg, isError) {
+  const box = $("toasts");
+  const el = document.createElement("div");
+  el.className = "toast" + (isError ? " error" : "");
+  el.textContent = msg;
+  box.appendChild(el);
+  setTimeout(() => { el.style.opacity = "0"; el.style.transition = "opacity 250ms"; setTimeout(() => el.remove(), 260); }, 3600);
+}
+
+/* ==================== 1. Effects state & presets ==================== */
+const DEFAULTS = {
+  echoOn: true, echoDelay: 300, echoFeedback: 35, echoWet: 35, echoDry: 100,
+  reverbOn: true, revRoom: 55, revDecay: 55, revDamp: 40, revMix: 30,
+  micGain: 110,
+  gateOn: true, gateThresh: -45, gateStrength: 70
+};
+const PRESETS = {
+  "Clean Voice":  { echoOn: false, echoDelay: 250, echoFeedback: 20, echoWet: 0,  echoDry: 100, reverbOn: false, revRoom: 30, revDecay: 35, revDamp: 50, revMix: 0,  micGain: 100, gateOn: true,  gateThresh: -48, gateStrength: 80 },
+  "Soft Echo":    { echoOn: true,  echoDelay: 220, echoFeedback: 25, echoWet: 25, echoDry: 100, reverbOn: true,  revRoom: 35, revDecay: 40, revDamp: 45, revMix: 15, micGain: 100, gateOn: true,  gateThresh: -46, gateStrength: 70 },
+  "Deep Echo":    { echoOn: true,  echoDelay: 450, echoFeedback: 55, echoWet: 45, echoDry: 90,  reverbOn: true,  revRoom: 60, revDecay: 60, revDamp: 35, revMix: 20, micGain: 105, gateOn: true,  gateThresh: -44, gateStrength: 60 },
+  "Naat Studio":  { echoOn: true,  echoDelay: 300, echoFeedback: 35, echoWet: 35, echoDry: 100, reverbOn: true,  revRoom: 55, revDecay: 55, revDamp: 40, revMix: 30, micGain: 110, gateOn: true,  gateThresh: -45, gateStrength: 70 },
+  "Hall Reverb":  { echoOn: false, echoDelay: 300, echoFeedback: 30, echoWet: 0,  echoDry: 100, reverbOn: true,  revRoom: 90, revDecay: 78, revDamp: 28, revMix: 50, micGain: 100, gateOn: true,  gateThresh: -46, gateStrength: 65 }
+};
+const LS_KEY = "echo-studio-settings-v1";
+let fx = Object.assign({}, DEFAULTS);
+let uiPrefs = { preset: "Naat Studio", theme: "dark", monitorDefault: false, monitoring: false, micId: "", outId: "" };
+try {
+  const saved = JSON.parse(localStorage.getItem(LS_KEY) || "null");
+  if (saved) {
+    if (saved.fx) fx = Object.assign({}, DEFAULTS, saved.fx);
+    if (saved.ui) uiPrefs = Object.assign(uiPrefs, saved.ui);
+  }
+} catch (e) { /* storage unavailable — run with defaults */ }
+function saveSettings() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify({ fx, ui: uiPrefs })); } catch (e) { /* ignore */ }
+}
+
+/* ==================== 2. Storage (IndexedDB) ==================== */
+const Store = {
+  db: null,
+  open() {
+    return new Promise((resolve, reject) => {
+      if (!("indexedDB" in window)) { reject(new Error("IndexedDB is not supported in this browser.")); return; }
+      const req = indexedDB.open("echo-studio", 1);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains("recordings")) {
+          db.createObjectStore("recordings", { keyPath: "id", autoIncrement: true });
+        }
+      };
+      req.onsuccess = () => { Store.db = req.result; resolve(); };
+      req.onerror = () => reject(req.error);
+    });
+  },
+  tx(mode, fn) {
+    return new Promise((resolve, reject) => {
+      const t = Store.db.transaction("recordings", mode);
+      const store = t.objectStore("recordings");
+      const out = fn(store);
+      t.oncomplete = () => resolve(out && out._result !== undefined ? out._result : out);
+      t.onerror = () => reject(t.error);
+      t.onabort = () => reject(t.error || new Error("Storage transaction aborted"));
+    });
+  },
+  add(rec) {
+    return new Promise((resolve, reject) => {
+      const t = Store.db.transaction("recordings", "readwrite");
+      const req = t.objectStore("recordings").add(rec);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  },
+  all() {
+    return new Promise((resolve, reject) => {
+      const req = Store.db.transaction("recordings", "readonly").objectStore("recordings").getAll();
+      req.onsuccess = () => resolve((req.result || []).sort((a, b) => b.createdAt - a.createdAt));
+      req.onerror = () => reject(req.error);
+    });
+  },
+  put(rec) {
+    return new Promise((resolve, reject) => {
+      const t = Store.db.transaction("recordings", "readwrite");
+      t.objectStore("recordings").put(rec);
+      t.oncomplete = () => resolve();
+      t.onerror = () => reject(t.error);
+    });
+  },
+  remove(id) {
+    return new Promise((resolve, reject) => {
+      const t = Store.db.transaction("recordings", "readwrite");
+      t.objectStore("recordings").delete(id);
+      t.oncomplete = () => resolve();
+      t.onerror = () => reject(t.error);
+    });
+  },
+  clear() {
+    return new Promise((resolve, reject) => {
+      const t = Store.db.transaction("recordings", "readwrite");
+      t.objectStore("recordings").clear();
+      t.oncomplete = () => resolve();
+      t.onerror = () => reject(t.error);
+    });
+  }
+};
+
+/* ==================== 3. Audio engine ==================== */
+/*
+  Graph (built once, parameters changed in place — nodes are never
+  duplicated when effects toggle):
+
+  mic → inputGain → gateAnalyser(tap)
+                  → gateGain ─┬→ dryGain ────────────────┐
+                              ├→ delay → wetGain ────────┤
+                              │    ↑ feedbackGain ↩      │
+                              └→ reverbIn → dampFilter → convolver → reverbGain ┤
+                                     delay → reverbIn (echoes get a tail too)   │
+                                                              master → limiter → analyser ─┬→ monitorGain → speakers
+                                                                                         └→ recordDest (MediaRecorder)
+*/
+const Engine = {
+  ctx: null, stream: null, source: null,
+  inputGain: null, gateGain: null, gateAnalyser: null,
+  dryGain: null, delay: null, feedbackGain: null, wetGain: null,
+  reverbIn: null, dampFilter: null, convolver: null, reverbGain: null,
+  master: null, limiter: null, analyser: null, monitorGain: null, recordDest: null,
+  irTimer: null, gateLevel: 1,
+
+  get active() { return !!this.stream; },
+
+  buildGraph() {
+    const ctx = this.ctx;
+    this.inputGain = ctx.createGain();
+    this.gateAnalyser = ctx.createAnalyser(); this.gateAnalyser.fftSize = 512;
+    this.gateGain = ctx.createGain();
+    this.dryGain = ctx.createGain();
+    this.delay = ctx.createDelay(2.0);
+    this.feedbackGain = ctx.createGain();
+    this.wetGain = ctx.createGain();
+    this.reverbIn = ctx.createGain();
+    this.dampFilter = ctx.createBiquadFilter(); this.dampFilter.type = "lowpass";
+    this.convolver = ctx.createConvolver();
+    this.reverbGain = ctx.createGain();
+    this.master = ctx.createGain(); this.master.gain.value = 0.9;
+    this.limiter = ctx.createDynamicsCompressor();
+    this.limiter.threshold.value = -6; this.limiter.knee.value = 3;
+    this.limiter.ratio.value = 20; this.limiter.attack.value = 0.003; this.limiter.release.value = 0.24;
+    this.analyser = ctx.createAnalyser(); this.analyser.fftSize = 2048;
+    this.monitorGain = ctx.createGain(); this.monitorGain.gain.value = 0;
+    this.recordDest = ctx.createMediaStreamDestination();
+
+    this.inputGain.connect(this.gateAnalyser);
+    this.inputGain.connect(this.gateGain);
+    this.gateGain.connect(this.dryGain); this.dryGain.connect(this.master);
+    this.gateGain.connect(this.delay);
+    this.delay.connect(this.feedbackGain); this.feedbackGain.connect(this.delay);
+    this.delay.connect(this.wetGain); this.wetGain.connect(this.master);
+    this.gateGain.connect(this.reverbIn);
+    this.delay.connect(this.reverbIn);
+    this.reverbIn.connect(this.dampFilter); this.dampFilter.connect(this.convolver);
+    this.convolver.connect(this.reverbGain); this.reverbGain.connect(this.master);
+    this.master.connect(this.limiter);
+    this.limiter.connect(this.analyser);
+    this.analyser.connect(this.monitorGain); this.monitorGain.connect(ctx.destination);
+    this.limiter.connect(this.recordDest);
+  },
+
+  /* Programmatic impulse response: stereo decaying noise.
+     Room size → length, decay → falloff curve, damping → progressive
+     darkening (one-pole low-pass inside the IR itself). */
+  makeIR() {
+    const ctx = this.ctx;
+    const dur = 0.35 + (fx.revRoom / 100) * 3.4;                 // 0.35s – 3.75s
+    const rate = ctx.sampleRate;
+    const len = Math.max(1, Math.floor(rate * dur));
+    const ir = ctx.createBuffer(2, len, rate);
+    const exponent = 1.6 + (100 - fx.revDecay) / 100 * 3.4;      // low decay = faster falloff
+    const dampCoef = 0.08 + (1 - fx.revDamp / 100) * 0.85;       // higher damping = darker
+    for (let ch = 0; ch < 2; ch++) {
+      const data = ir.getChannelData(ch);
+      let lp = 0;
+      for (let i = 0; i < len; i++) {
+        const t = i / len;
+        const env = Math.pow(1 - t, exponent);
+        const white = Math.random() * 2 - 1;
+        lp += dampCoef * (white - lp);
+        data[i] = lp * env;
+      }
+    }
+    return ir;
+  },
+  scheduleIR() {
+    clearTimeout(this.irTimer);
+    this.irTimer = setTimeout(() => {
+      if (this.ctx && this.convolver) this.convolver.buffer = this.makeIR();
+    }, 120);
+  },
+
+  applyFx() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime, S = (node, v) => node.gain.setTargetAtTime(v, t, 0.03);
+    S(this.inputGain, fx.micGain / 100);
+    this.delay.delayTime.setTargetAtTime(fx.echoDelay / 1000, t, 0.03);
+    S(this.feedbackGain, fx.echoOn ? (fx.echoFeedback / 100) * 0.92 : 0);
+    S(this.wetGain, fx.echoOn ? fx.echoWet / 100 : 0);
+    S(this.dryGain, fx.echoDry / 100);
+    S(this.reverbGain, fx.reverbOn ? fx.revMix / 100 : 0);
+    this.dampFilter.frequency.setTargetAtTime(18000 - (fx.revDamp / 100) * 16000, t, 0.05);
+    this.scheduleIR();
+  },
+
+  setMonitoring(on) {
+    if (!this.ctx) return;
+    this.monitorGain.gain.setTargetAtTime(on ? 1 : 0, this.ctx.currentTime, 0.05);
+  },
+
+  async start(deviceId) {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      throw new Error("This browser does not support microphone access. Try Chrome or Edge over HTTPS.");
+    }
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) throw new Error("The Web Audio API is not supported in this browser.");
+    if (!this.ctx) { this.ctx = new AC(); this.buildGraph(); this.convolver.buffer = this.makeIR(); }
+    if (this.ctx.state === "suspended") await this.ctx.resume();
+    if (this.stream) await this.stopStreamOnly();
+    const constraints = {
+      audio: {
+        deviceId: deviceId ? { exact: deviceId } : undefined,
+        echoCancellation: false, noiseSuppression: false, autoGainControl: false
+      }
+    };
+    this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+    this.source = this.ctx.createMediaStreamSource(this.stream);
+    this.source.connect(this.inputGain);
+    this.applyFx();
+    this.setMonitoring(uiPrefs.monitoring);
+    return this.stream;
+  },
+  async stopStreamOnly() {
+    if (this.source) { try { this.source.disconnect(); } catch (e) {} this.source = null; }
+    if (this.stream) { this.stream.getTracks().forEach((tr) => tr.stop()); this.stream = null; }
+  },
+  async stop() { await this.stopStreamOnly(); },
+
+  /* RMS level (0..1) of the raw input, used by the meter and the gate. */
+  inputLevel(buf) {
+    if (!this.gateAnalyser) return 0;
+    this.gateAnalyser.getFloatTimeDomainData(buf);
+    let sum = 0;
+    for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
+    return Math.sqrt(sum / buf.length);
+  },
+  /* Noise gate: driven from the render loop. When the input sits below
+     the threshold, gateGain eases toward (1 - strength); speech opens it. */
+  runGate(rms) {
+    if (!this.ctx) return;
+    const db = 20 * Math.log10(rms + 1e-7);
+    let target = 1;
+    if (fx.gateOn && db < fx.gateThresh) target = 1 - fx.gateStrength / 100;
+    const tc = target < this.gateLevel ? 0.06 : 0.015; // close slower than open
+    this.gateLevel = target;
+    this.gateGain.gain.setTargetAtTime(target, this.ctx.currentTime, tc);
+  }
+};
+
+/* ==================== 4. Recorder + WAV export ==================== */
+/* Encode an AudioBuffer as a 16-bit PCM WAV blob. */
+function bufferToWav(buffer) {
+  const numCh = Math.min(2, buffer.numberOfChannels);
+  const rate = buffer.sampleRate;
+  const len = buffer.length * numCh;
+  const pcm = new Int16Array(len);
+  const chans = [];
+  for (let c = 0; c < numCh; c++) chans.push(buffer.getChannelData(c));
+  for (let i = 0; i < buffer.length; i++) {
+    for (let c = 0; c < numCh; c++) {
+      const s = clamp(chans[c][i], -1, 1);
+      pcm[i * numCh + c] = s < 0 ? s * 0x8000 : s * 0x7fff;
+    }
+  }
+  const bytes = 44 + pcm.length * 2;
+  const ab = new ArrayBuffer(bytes);
+  const v = new DataView(ab);
+  const wstr = (off, s) => { for (let i = 0; i < s.length; i++) v.setUint8(off + i, s.charCodeAt(i)); };
+  wstr(0, "RIFF"); v.setUint32(4, bytes - 8, true); wstr(8, "WAVE");
+  wstr(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true);
+  v.setUint16(22, numCh, true); v.setUint32(24, rate, true);
+  v.setUint32(28, rate * numCh * 2, true); v.setUint16(32, numCh * 2, true); v.setUint16(34, 16, true);
+  wstr(36, "data"); v.setUint32(40, pcm.length * 2, true);
+  for (let i = 0; i < pcm.length; i++) v.setInt16(44 + i * 2, pcm[i], true);
+  return new Blob([ab], { type: "audio/wav" });
+}
+
+const Recorder = {
+  mr: null, chunks: [], state: "idle", // idle | recording | paused
+  startedAt: 0, accumulated: 0, timerInt: null,
+  onTick: null, onState: null,
+
+  get elapsed() {
+    let e = this.accumulated;
+    if (this.state === "recording") e += (performance.now() - this.startedAt) / 1000;
+    return e;
+  },
+  pickMime() {
+    if (!("MediaRecorder" in window)) return "";
+    const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus"];
+    for (const m of candidates) { try { if (MediaRecorder.isTypeSupported(m)) return m; } catch (e) {} }
+    return "";
+  },
+  start() {
+    if (!("MediaRecorder" in window)) throw new Error("MediaRecorder is not supported in this browser, so recording is unavailable.");
+    this.chunks = [];
+    const mime = this.pickMime();
+    this.mr = new MediaRecorder(Engine.recordDest.stream, mime ? { mimeType: mime } : undefined);
+    this.mr.ondataavailable = (e) => { if (e.data && e.data.size) this.chunks.push(e.data); };
+    this.accumulated = 0;
+    this.startedAt = performance.now();
+    this.state = "recording";
+    this.mr.start(250);
+    this.timerInt = setInterval(() => { if (this.onTick) this.onTick(this.elapsed); }, 200);
+    if (this.onState) this.onState(this.state);
+  },
+  pause() {
+    if (this.mr && this.state === "recording") {
+      this.mr.pause();
+      this.accumulated += (performance.now() - this.startedAt) / 1000;
+      this.state = "paused";
+      if (this.onState) this.onState(this.state);
+    }
+  },
+  resume() {
+    if (this.mr && this.state === "paused") {
+      this.mr.resume();
+      this.startedAt = performance.now();
+      this.state = "recording";
+      if (this.onState) this.onState(this.state);
+    }
+  },
+  stop() {
+    return new Promise((resolve) => {
+      if (!this.mr) { resolve(null); return; }
+      const duration = this.elapsed;
+      const mime = this.mr.mimeType || "audio/webm";
+      clearInterval(this.timerInt);
+      this.mr.onstop = async () => {
+        this.state = "idle"; this.mr = null;
+        if (this.onState) this.onState("idle");
+        const raw = new Blob(this.chunks, { type: mime });
+        this.chunks = [];
+        if (!raw.size) { resolve(null); return; }
+        /* Prefer WAV: decode the take and re-encode as PCM WAV. */
+        let blob = raw, ext = mime.includes("mp4") ? "m4a" : (mime.includes("ogg") ? "ogg" : "webm");
+        try {
+          const abuf = await Engine.ctx.decodeAudioData(await raw.arrayBuffer());
+          blob = bufferToWav(abuf); ext = "wav";
+        } catch (e) { /* keep the MediaRecorder format */ }
+        resolve({ blob, ext, duration });
+      };
+      try { this.mr.stop(); } catch (e) { resolve(null); }
+    });
+  }
+};
+function takeName() {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, "0");
+  return "Echo Studio " + d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) +
+    " " + p(d.getHours()) + "-" + p(d.getMinutes()) + "-" + p(d.getSeconds());
+}
+function takeFilename(name, ext) {
+  return name.replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-").toLowerCase() + "." + ext;
+}
+
+/* ==================== 5. App / UI ==================== */
+const els = {};
+["statusPill","statusText","wave","waveIdle","timer","timerLabel","lastTake","meterFill","clipDot",
+ "recBtn","recLabel","pauseBtn","pauseLabel","pauseIcon","micBtn","micLabel","monitorToggle","monitorWarn",
+ "presetRow","libList","storageLine","storageFill","player","scrim","drawer","micSelect","outSelect","outNote",
+ "monitorDefault","themeDark","themeLight"].forEach((id) => els[id] = $(id));
+
+const SLIDERS = [
+  { id: "echoDelay",    key: "echoDelay",    fmt: (v) => v + " ms" },
+  { id: "echoFeedback", key: "echoFeedback", fmt: (v) => v + "%" },
+  { id: "echoWet",      key: "echoWet",      fmt: (v) => v + "%" },
+  { id: "echoDry",      key: "echoDry",      fmt: (v) => v + "%" },
+  { id: "revRoom",      key: "revRoom",      fmt: (v) => v + "%" },
+  { id: "revDecay",     key: "revDecay",     fmt: (v) => v + "%" },
+  { id: "revDamp",      key: "revDamp",      fmt: (v) => v + "%" },
+  { id: "revMix",       key: "revMix",       fmt: (v) => v + "%" },
+  { id: "micGain",      key: "micGain",      fmt: (v) => v + "%" },
+  { id: "gateThresh",   key: "gateThresh",   fmt: (v) => v + " dB" },
+  { id: "gateStrength", key: "gateStrength", fmt: (v) => v + "%" }
+];
+const TOGGLES = [
+  { id: "echoOn",   key: "echoOn",   body: "echoBody" },
+  { id: "reverbOn", key: "reverbOn", body: "reverbBody" },
+  { id: "gateOn",   key: "gateOn",   body: "gateBody" }
+];
+
+function setStatus(mode, text) {
+  els.statusPill.className = "status-pill" + (mode ? " " + mode : "");
+  els.statusText.textContent = text;
+}
+function refreshStatus() {
+  if (Recorder.state === "recording") setStatus("rec", "Recording");
+  else if (Recorder.state === "paused") setStatus("rec", "Paused");
+  else if (Engine.active) setStatus("live", "Microphone active");
+  else setStatus("", "Ready");
+}
+function syncFxUI() {
+  SLIDERS.forEach((s) => { $(s.id).value = fx[s.key]; $(s.id + "Val").textContent = s.fmt(fx[s.key]); });
+  TOGGLES.forEach((t) => { $(t.id).checked = !!fx[t.key]; $(t.body).classList.toggle("disabled", !fx[t.key]); });
+  document.querySelectorAll(".preset-chip").forEach((c) => c.classList.toggle("active", c.dataset.preset === uiPrefs.preset));
+}
+function markCustom() {
+  if (uiPrefs.preset !== "Custom") {
+    uiPrefs.preset = "Custom";
+    document.querySelectorAll(".preset-chip").forEach((c) => c.classList.toggle("active", c.dataset.preset === "Custom"));
+  }
+}
+function applyPreset(name) {
+  if (PRESETS[name]) { fx = Object.assign({}, fx, PRESETS[name]); }
+  uiPrefs.preset = name;
+  syncFxUI(); Engine.applyFx(); saveSettings();
+}
+
+/* ---------- microphone ---------- */
+async function startMic() {
+  els.micBtn.disabled = true;
+  try {
+    await Engine.start(uiPrefs.micId || "");
+    els.micLabel.textContent = "Stop Mic";
+    els.micBtn.classList.add("active");
+    els.waveIdle.style.display = "none";
+    refreshStatus();
+    refreshDevices();
+    toast("Microphone is live. Effects are applied in real time.");
+  } catch (err) {
+    handleMicError(err);
+  } finally { els.micBtn.disabled = false; }
+}
+async function stopMic() {
+  if (Recorder.state !== "idle") return;
+  await Engine.stop();
+  els.micLabel.textContent = "Start Mic";
+  els.micBtn.classList.remove("active");
+  els.waveIdle.style.display = "";
+  els.meterFill.style.width = "0%";
+  refreshStatus();
+}
+function handleMicError(err) {
+  let msg = "Microphone error: " + (err && err.message ? err.message : err);
+  if (err && (err.name === "NotAllowedError" || err.name === "SecurityError")) {
+    msg = "Microphone permission was denied. Allow microphone access in your browser settings, then try again.";
+  } else if (err && (err.name === "NotFoundError" || err.name === "OverconstrainedError")) {
+    msg = "No microphone was found. Connect a microphone and try again.";
+  } else if (err && err.name === "NotReadableError") {
+    msg = "The microphone is busy or unavailable. Close other apps using it and try again.";
+  }
+  toast(msg, true);
+  setStatus("", "Ready");
+}
+els.micBtn.addEventListener("click", () => { Engine.active ? stopMic() : startMic(); });
+
+/* ---------- transport ---------- */
+els.recBtn.addEventListener("click", async () => {
+  if (Recorder.state !== "idle") {
+    els.recBtn.disabled = true;
+    const take = await Recorder.stop();
+    els.recBtn.disabled = false;
+    els.recBtn.classList.remove("is-rec");
+    els.recLabel.textContent = "Record";
+    els.pauseBtn.disabled = true;
+    els.timer.classList.remove("recording");
+    refreshStatus();
+    if (take) {
+      const rec = { name: takeName(), createdAt: Date.now(), duration: take.duration, size: take.blob.size, ext: take.ext, blob: take.blob };
+      try {
+        rec.id = await Store.add(rec);
+        els.lastTake.textContent = "Last take: " + fmtTime(take.duration) + " · " + fmtSize(take.blob.size) + " · " + take.ext.toUpperCase();
+        toast("Recording saved to your library.");
+        renderLibrary(); updateStorageLine();
+      } catch (e) { toast("Could not save the recording: " + e.message, true); }
+    } else {
+      toast("That take was empty — nothing was saved.", true);
+    }
+    return;
+  }
+  if (!Engine.active) {
+    const ok = await startMic().then(() => Engine.active).catch(() => false);
+    if (!ok) return;
+  }
+  try {
+    Recorder.start();
+    els.recBtn.classList.add("is-rec");
+    els.recLabel.textContent = "Stop";
+    els.pauseBtn.disabled = false;
+    els.pauseLabel.textContent = "Pause";
+    els.timer.classList.add("recording");
+    refreshStatus();
+  } catch (e) { toast(e.message, true); }
+});
+els.pauseBtn.addEventListener("click", () => {
+  if (Recorder.state === "recording") { Recorder.pause(); els.pauseLabel.textContent = "Resume"; }
+  else if (Recorder.state === "paused") { Recorder.resume(); els.pauseLabel.textContent = "Pause"; }
+  refreshStatus();
+});
+Recorder.onTick = (sec) => { els.timer.textContent = fmtTime(sec); };
+Recorder.onState = (st) => { if (st === "idle") els.timer.textContent = "00:00"; refreshStatus(); };
+
+/* ---------- monitoring ---------- */
+function setMonitoring(on, silent) {
+  uiPrefs.monitoring = on;
+  els.monitorToggle.checked = on;
+  els.monitorWarn.classList.toggle("show", on);
+  Engine.setMonitoring(on && Engine.active);
+  saveSettings();
+  if (on && !silent) toast("Live monitoring on — headphones recommended to avoid feedback.");
+}
+els.monitorToggle.addEventListener("change", () => setMonitoring(els.monitorToggle.checked));
+
+/* ---------- effects wiring ---------- */
+SLIDERS.forEach((s) => {
+  $(s.id).addEventListener("input", () => {
+    fx[s.key] = Number($(s.id).value);
+    $(s.id + "Val").textContent = s.fmt(fx[s.key]);
+    markCustom(); Engine.applyFx(); saveSettings();
+  });
+});
+TOGGLES.forEach((t) => {
+  $(t.id).addEventListener("change", () => {
+    fx[t.key] = $(t.id).checked;
+    $(t.body).classList.toggle("disabled", !fx[t.key]);
+    markCustom(); Engine.applyFx(); saveSettings();
+  });
+});
+(function buildPresets() {
+  Object.keys(PRESETS).concat(["Custom"]).forEach((name) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "preset-chip"; b.dataset.preset = name; b.textContent = name;
+    b.addEventListener("click", () => { if (name !== "Custom") applyPreset(name); });
+    els.presetRow.appendChild(b);
+  });
+})();
+
+/* ---------- render loop: waveform, meter, gate ---------- */
+const waveCtx = els.wave.getContext("2d");
+const gateBuf = new Float32Array(512);
+const waveBuf = new Float32Array(2048);
+let clipUntil = 0;
+function drawIdleWave() {
+  const w = els.wave.width, h = els.wave.height;
+  waveCtx.clearRect(0, 0, w, h);
+  waveCtx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--line") || "#26302b";
+  waveCtx.lineWidth = 1.5;
+  waveCtx.beginPath(); waveCtx.moveTo(0, h / 2); waveCtx.lineTo(w, h / 2); waveCtx.stroke();
+}
+function loop() {
+  requestAnimationFrame(loop);
+  if (!Engine.active || !Engine.analyser) return;
+  const rms = Engine.inputLevel(gateBuf);
+  Engine.runGate(rms);
+  const db = 20 * Math.log10(rms + 1e-7);
+  const pct = clamp(((db + 60) / 60) * 100, 0, 100);
+  els.meterFill.style.width = pct.toFixed(1) + "%";
+  if (db > -1.5) clipUntil = performance.now() + 700;
+  els.clipDot.classList.toggle("hot", performance.now() < clipUntil);
+  /* waveform */
+  const w = els.wave.width, h = els.wave.height;
+  Engine.analyser.getFloatTimeDomainData(waveBuf);
+  const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#2fbf9b";
+  waveCtx.clearRect(0, 0, w, h);
+  waveCtx.lineWidth = 2; waveCtx.strokeStyle = accent;
+  waveCtx.beginPath();
+  const step = Math.ceil(waveBuf.length / w);
+  for (let x = 0; x < w; x++) {
+    const v = waveBuf[Math.min(waveBuf.length - 1, x * step)];
+    const y = (0.5 - v * 0.48) * h;
+    if (x === 0) waveCtx.moveTo(x, y); else waveCtx.lineTo(x, y);
+  }
+  waveCtx.stroke();
+}
+function fitCanvas() {
+  const r = els.wave.getBoundingClientRect();
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  els.wave.width = Math.max(300, Math.floor(r.width * dpr));
+  els.wave.height = Math.floor(132 * dpr);
+  if (!Engine.active) drawIdleWave();
+}
+window.addEventListener("resize", fitCanvas);
+
+/* ---------- library ---------- */
+let playingId = null, playingUrl = null;
+function stopPlayback() {
+  els.player.pause();
+  if (playingUrl) { URL.revokeObjectURL(playingUrl); playingUrl = null; }
+  playingId = null;
+  document.querySelectorAll(".play-btn").forEach((b) => { b.innerHTML = playIcon; });
+}
+const playIcon = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>';
+const pauseIconSm = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+els.player.addEventListener("ended", stopPlayback);
+
+async function renderLibrary() {
+  const list = els.libList;
+  list.innerHTML = "";
+  let recs = [];
+  try { recs = await Store.all(); } catch (e) { /* storage unavailable */ }
+  if (!recs.length) {
+    list.innerHTML = '<div class="empty-state">No recordings yet. Press the red button, recite, and your take will appear here.</div>';
+    return;
+  }
+  recs.forEach((rec) => {
+    const item = document.createElement("div");
+    item.className = "rec-item";
+    const ext = rec.ext || (rec.blob && rec.blob.type.includes("wav") ? "wav" : "webm");
+    item.innerHTML =
+      '<button class="play-btn" aria-label="Play recording">' + playIcon + "</button>" +
+      '<div class="rec-meta"><div class="rec-name"></div>' +
+      '<div class="rec-sub">' + fmtDate(rec.createdAt) + " · " + fmtTime(rec.duration) + " · " + fmtSize(rec.size) + " · " + ext.toUpperCase() + "</div>" +
+      '<div class="prog"><i></i></div><div class="rename-slot"></div></div>' +
+      '<div class="rec-actions">' +
+      '<button class="mini-btn dl">Download</button>' +
+      '<button class="mini-btn rn">Rename</button>' +
+      '<button class="mini-btn danger del">Delete</button></div>';
+    item.querySelector(".rec-name").textContent = rec.name;
+    const playBtn = item.querySelector(".play-btn");
+    const prog = item.querySelector(".prog"), progFill = item.querySelector(".prog i");
+
+    playBtn.addEventListener("click", async () => {
+      if (playingId === rec.id) { stopPlayback(); prog.style.display = "none"; return; }
+      stopPlayback();
+      playingId = rec.id;
+      playingUrl = URL.createObjectURL(rec.blob);
+      els.player.src = playingUrl;
+      if (uiPrefs.outId && els.player.setSinkId) { try { await els.player.setSinkId(uiPrefs.outId); } catch (e) {} }
+      els.player.play().catch((e) => toast("Playback failed: " + e.message, true));
+      playBtn.innerHTML = pauseIconSm;
+      prog.style.display = "block";
+      const tick = () => {
+        if (playingId !== rec.id) return;
+        if (els.player.duration) progFill.style.width = (els.player.currentTime / els.player.duration * 100) + "%";
+        if (!els.player.paused && !els.player.ended) requestAnimationFrame(tick);
+        else if (els.player.ended) { prog.style.display = "none"; }
+      };
+      tick();
+    });
+
+    item.querySelector(".dl").addEventListener("click", () => {
+      const a = document.createElement("a");
+      const url = URL.createObjectURL(rec.blob);
+      a.href = url; a.download = takeFilename(rec.name, ext);
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    });
+
+    const delBtn = item.querySelector(".del");
+    delBtn.addEventListener("click", async () => {
+      if (delBtn.dataset.confirm) {
+        if (playingId === rec.id) stopPlayback();
+        await Store.remove(rec.id);
+        toast("Recording deleted.");
+        renderLibrary(); updateStorageLine();
+      } else {
+        delBtn.dataset.confirm = "1"; delBtn.textContent = "Tap again to delete"; delBtn.classList.add("confirm");
+        setTimeout(() => { delete delBtn.dataset.confirm; delBtn.textContent = "Delete"; delBtn.classList.remove("confirm"); }, 3000);
+      }
+    });
+
+    item.querySelector(".rn").addEventListener("click", () => {
+      const slot = item.querySelector(".rename-slot");
+      if (slot.firstChild) { slot.innerHTML = ""; return; }
+      const row = document.createElement("div");
+      row.className = "rename-row";
+      const input = document.createElement("input");
+      input.type = "text"; input.value = rec.name; input.maxLength = 80; input.setAttribute("aria-label", "New recording name");
+      const save = document.createElement("button"); save.className = "mini-btn"; save.textContent = "Save";
+      const cancel = document.createElement("button"); cancel.className = "mini-btn"; cancel.textContent = "Cancel";
+      save.addEventListener("click", async () => {
+        const name = input.value.trim();
+        if (!name) { toast("Name cannot be empty.", true); return; }
+        rec.name = name;
+        await Store.put(rec);
+        renderLibrary();
+        toast("Recording renamed.");
+      });
+      cancel.addEventListener("click", () => { slot.innerHTML = ""; });
+      input.addEventListener("keydown", (e) => { if (e.key === "Enter") save.click(); if (e.key === "Escape") slot.innerHTML = ""; });
+      row.appendChild(input); row.appendChild(save); row.appendChild(cancel);
+      slot.appendChild(row);
+      input.focus(); input.select();
+    });
+
+    list.appendChild(item);
+  });
+}
+async function updateStorageLine() {
+  let used = 0;
+  try { const recs = await Store.all(); used = recs.reduce((a, r) => a + (r.size || 0), 0); } catch (e) {}
+  if (navigator.storage && navigator.storage.estimate) {
+    try {
+      const est = await navigator.storage.estimate();
+      const quota = est.quota || 0;
+      els.storageLine.textContent = "Storage: " + fmtSize(used) + " in recordings" + (quota ? " · " + fmtSize(quota) + " available on this device" : "");
+      els.storageFill.style.width = quota ? clamp(used / quota * 100, 0, 100) + "%" : "0%";
+      return;
+    } catch (e) {}
+  }
+  els.storageLine.textContent = "Storage: " + fmtSize(used) + " in recordings (stored in this browser)";
+  els.storageFill.style.width = "0%";
+}
+
+/* ---------- devices & settings ---------- */
+async function refreshDevices() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+  try {
+    const devs = await navigator.mediaDevices.enumerateDevices();
+    const mics = devs.filter((d) => d.kind === "audioinput");
+    const outs = devs.filter((d) => d.kind === "audiooutput");
+    const fill = (sel, list, cur, fallback) => {
+      sel.innerHTML = "";
+      const o = document.createElement("option"); o.value = ""; o.textContent = fallback; sel.appendChild(o);
+      list.forEach((d, i) => {
+        const op = document.createElement("option");
+        op.value = d.deviceId; op.textContent = d.label || ("Device " + (i + 1));
+        sel.appendChild(op);
+      });
+      sel.value = cur || "";
+      if (sel.value !== (cur || "")) sel.value = "";
+    };
+    fill(els.micSelect, mics, uiPrefs.micId, "Default microphone");
+    fill(els.outSelect, outs, uiPrefs.outId, "Default output");
+  } catch (e) { /* device listing unavailable */ }
+}
+els.micSelect.addEventListener("change", async () => {
+  uiPrefs.micId = els.micSelect.value; saveSettings();
+  if (Engine.active && Recorder.state === "idle") {
+    try { await Engine.start(uiPrefs.micId || ""); toast("Microphone switched."); }
+    catch (e) { handleMicError(e); }
+  }
+});
+els.outSelect.addEventListener("change", async () => {
+  uiPrefs.outId = els.outSelect.value; saveSettings();
+  let applied = false;
+  if (Engine.ctx && typeof Engine.ctx.setSinkId === "function" && Engine.ctx.state !== "closed") {
+    try { await Engine.ctx.setSinkId(uiPrefs.outId || ""); applied = true; } catch (e) {}
+  }
+  if (els.player.setSinkId) { try { await els.player.setSinkId(uiPrefs.outId || ""); applied = true; } catch (e) {} }
+  toast(applied ? "Output device applied." : "Output saved. This browser applies it to playback only where supported.");
+});
+if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
+  navigator.mediaDevices.addEventListener("devicechange", refreshDevices);
+}
+
+function applyTheme() {
+  document.documentElement.setAttribute("data-theme", uiPrefs.theme);
+  els.themeDark.classList.toggle("active", uiPrefs.theme === "dark");
+  els.themeLight.classList.toggle("active", uiPrefs.theme === "light");
+  if (!Engine.active) drawIdleWave();
+}
+els.themeDark.addEventListener("click", () => { uiPrefs.theme = "dark"; applyTheme(); saveSettings(); });
+els.themeLight.addEventListener("click", () => { uiPrefs.theme = "light"; applyTheme(); saveSettings(); });
+els.monitorDefault.addEventListener("change", () => {
+  uiPrefs.monitorDefault = els.monitorDefault.checked; saveSettings();
+  toast(uiPrefs.monitorDefault ? "Monitoring will turn on when the mic starts." : "Monitoring default off.");
+});
+$("resetFxBtn").addEventListener("click", () => {
+  fx = Object.assign({}, DEFAULTS);
+  uiPrefs.preset = "Naat Studio";
+  syncFxUI(); Engine.applyFx(); saveSettings();
+  toast("Effect settings reset to defaults.");
+});
+$("clearLibBtn").addEventListener("click", async () => {
+  const btn = $("clearLibBtn");
+  if (!btn.dataset.confirm) {
+    btn.dataset.confirm = "1"; btn.textContent = "Tap again to delete ALL recordings";
+    setTimeout(() => { delete btn.dataset.confirm; btn.textContent = "Clear recording library"; }, 3500);
+    return;
+  }
+  delete btn.dataset.confirm; btn.textContent = "Clear recording library";
+  stopPlayback();
+  await Store.clear();
+  renderLibrary(); updateStorageLine();
+  toast("Recording library cleared.");
+});
+
+/* ---------- drawer ---------- */
+function openDrawer() { els.drawer.classList.add("show"); els.scrim.classList.add("show"); refreshDevices(); }
+function closeDrawer() { els.drawer.classList.remove("show"); els.scrim.classList.remove("show"); }
+$("settingsBtn").addEventListener("click", openDrawer);
+$("drawerClose").addEventListener("click", closeDrawer);
+els.scrim.addEventListener("click", closeDrawer);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDrawer(); });
+
+/* ---------- init ---------- */
+(async function init() {
+  document.documentElement.setAttribute("data-theme", uiPrefs.theme || "dark");
+  applyTheme();
+  syncFxUI();
+  els.monitorDefault.checked = !!uiPrefs.monitorDefault;
+  setMonitoring(!!uiPrefs.monitorDefault, true);
+  if (!("MediaRecorder" in window)) {
+    els.recBtn.disabled = true;
+    toast("MediaRecorder is not supported in this browser — recording is unavailable, but live effects still work where a microphone is available.", true);
+  }
+  if (!window.isSecureContext) {
+    toast("Microphone access needs a secure page (HTTPS or localhost).", true);
+  }
+  try {
+    await Store.open();
+    renderLibrary(); updateStorageLine();
+  } catch (e) {
+    els.libList.innerHTML = '<div class="empty-state">Local storage is unavailable in this browser, so recordings cannot be saved between visits.</div>';
+  }
+  refreshDevices();
+  fitCanvas();
+  drawIdleWave();
+  requestAnimationFrame(loop);
+})();
+    </script>
+  </body>
+</html>
